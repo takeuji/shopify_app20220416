@@ -1,0 +1,2 @@
+# shopify_app20220416
+ShopifyのAmplify 上で動かすアプリのテスト
