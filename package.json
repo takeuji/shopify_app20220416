@@ -12,7 +12,7 @@
     "start": "npm run serve",
     "test": "vitest --reporter=verbose"
   },
-  "type": "module",
+  "type": "npmmodule",
   "engines": {
     "node": ">=16.13.0"
   },
@@ -37,7 +37,6 @@
     "vite": "^2.9.1"
   },
   "devDependencies": {
-    "cpx": "^1.5.0",
     "husky": "^7.0.4",
     "prettier": "^2.6.2",
     "pretty-quick": "^3.1.3",
