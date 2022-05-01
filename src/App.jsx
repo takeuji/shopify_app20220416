@@ -14,11 +14,14 @@ import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import translations from "@shopify/polaris/locales/en.json";
 import "@shopify/polaris/build/esm/styles.css";
 
-import { HomePage } from "./components/HomePage";
+import { useState } from "react";
+import { EmptyStatePage } from "./components/EmptyStatePage";
+import { ProductsPage } from "./components/ProductsPage";
 
 export default function App() {
-  console.log('host-----')
-  console.log(new URL(location).searchParams.get("host"))
+  console.log("host-----");
+  console.log(new URL(location).searchParams.get("host"));
+  const [selection, setSelection] = useState([]);
   return (
     <PolarisProvider i18n={translations}>
       <AppBridgeProvider
@@ -30,7 +33,11 @@ export default function App() {
         }}
       >
         <MyProvider>
-          <HomePage />
+          {selection.length > 0 ? (
+            <ProductsPage productIds={selection} />
+          ) : (
+            <EmptyStatePage setSelection={setSelection} />
+          )}
         </MyProvider>
       </AppBridgeProvider>
     </PolarisProvider>
