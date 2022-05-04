@@ -1,0 +1,14 @@
+{
+  "lambdaLayers": [],
+  "environmentVariableList": [
+    {
+      "cloudFormationParameterName": "shopifyApiKey",
+      "environmentVariableName": "SHOPIFY_API_KEY"
+    },
+    {
+      "cloudFormationParameterName": "shop",
+      "environmentVariableName": "SHOP"
+    }
+  ],
+  "secretNames": ["SHOPIFY_API_SECRET"]
+}
