@@ -8,6 +8,20 @@ import "dotenv/config";
 import applyAuthMiddleware from "./middleware/auth.js";
 import verifyRequest from "./middleware/verify-request.js";
 
+console.log("server");
+import path from "path";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
+// console.log(`path: ${path.resolve('./node_modules/csv-parser/index.js')}`)
+// const modulePath = path.resolve('./node_modules/csv-parser/')
+// //require(modulePath)
+// delete require.cache[modulePath]
+// const modulePath2 = path.resolve('./node_modules/csv-parser/index.d.ts')
+// //require(modulePath)
+// delete require.cache[modulePath2]
+// //require(modulePath)
+
 const USE_ONLINE_TOKENS = true;
 const TOP_LEVEL_OAUTH_COOKIE = "shopify_top_level_oauth";
 
@@ -31,7 +45,7 @@ const ACTIVE_SHOPIFY_SHOPS = {};
 Shopify.Webhooks.Registry.addHandler("APP_UNINSTALLED", {
   path: "/webhooks",
   webhookHandler: async (topic, shop, body) => {
-    delete ACTIVE_SHOPIFY_SHOPS[shop]
+    delete ACTIVE_SHOPIFY_SHOPS[shop];
   },
 });
 

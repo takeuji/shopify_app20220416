@@ -4,7 +4,6 @@ import "./fileupload.css";
 function FileUploader(props) {
   const [file, setFile] = useState(null);
   const onInputChange = (e) => {
-    // props.uploadCSV(e.target.value)
     props.uploadCSV(e.target.files);
     setFile(e.target.files[0]);
   };
