@@ -24,6 +24,7 @@ export function EmptyStatePage({ setSelection }) {
   const [failUpload, setFailUpload] = useState(false);
   const [failMessage, setFailMessage] = useState("");
   const [successUpload, setSuccessUpload] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleSelection = (resoureces) => {
     setOpen(false);
@@ -74,7 +75,7 @@ export function EmptyStatePage({ setSelection }) {
   /**
    * CSVをアップロード(読み込む)する処理
    */
-  const uploadCSV = () => {
+  const uploadCSV = (e) => {
     const setErrorMsg = () => {
       setFailMessage(
         "アップロードに失敗しました。もう一度アップロードしてください。"
@@ -82,20 +83,30 @@ export function EmptyStatePage({ setSelection }) {
       setFailUpload(true);
       setIsSetCSVFile(false);
     };
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const ret = readCSV(event.target.result);
-      if (!ret) {
-        setErrorMsg();
-      } else {
-        setSuccessUpload(true);
-        toggleActive();
-      }
-    };
-    reader.onerror = () => {
+    console.log("click");
+
+    try {
+      Papa.parse(uploadCSVFile, {
+        step: (results, parser) => {
+          console.log("step");
+          console.log(results.data);
+        },
+        error: function (err, _file, _inputElem, reason) {
+          console.log("err");
+          console.log(err);
+          console.log("reason");
+          console.log(reason);
+          setErrorMsg();
+        },
+        complete: () => {
+          console.log("complete");
+          setSuccessUpload(true);
+          toggleActive();
+        },
+      });
+    } catch (e) {
       setErrorMsg();
-    };
-    reader.readAsText(uploadCSVFile);
+    }
   };
 
   /**
@@ -104,6 +115,9 @@ export function EmptyStatePage({ setSelection }) {
    */
   const readCSV = (csvdata) => {
     try {
+      console.log(csvdata);
+      // 初めに全体を読む
+      const ret = Papa.parse(csvdata);
       Papa.parse(csvdata, {
         step: (results, parser) => {
           console.log("step");
@@ -113,12 +127,6 @@ export function EmptyStatePage({ setSelection }) {
           console.log("complete");
         },
       });
-      //delete(require.cache[path.resolve('csv-parser/index.js')]);
-      // const stream = new csvParser();
-      // stream.on("data", (data) => {
-      //   console.log(data);
-      // });
-      // stream.write(csvdata);
     } catch (e) {
       return false;
     }
