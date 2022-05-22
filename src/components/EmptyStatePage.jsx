@@ -10,6 +10,7 @@ import {
 } from "@shopify/polaris";
 import { ResourcePicker, TitleBar } from "@shopify/app-bridge-react";
 import FileUploader from "./FileUploader.jsx";
+import Papa from "papaparse";
 import "./fileupload.css";
 
 const img = "https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg";
@@ -28,6 +29,7 @@ export function EmptyStatePage({ setSelection }) {
 
   /**
    * アップロードするCSVファイルを設定する処理
+   * (ファイルを選択 ボタンでファイルが選択された時)
    * @param files ファイルリストオブジェクト
    */
   const setCSV = (files) => {
@@ -72,7 +74,6 @@ export function EmptyStatePage({ setSelection }) {
       setIsSetCSVFile(false);
     };
     const reader = new FileReader();
-    reader.readAsText(uploadCSVFile);
     reader.onload = (event) => {
       const ret = readCSV(event.target.result);
       if (!ret) {
@@ -82,6 +83,7 @@ export function EmptyStatePage({ setSelection }) {
     reader.onerror = () => {
       setErrorMsg();
     };
+    reader.readAsText(uploadCSVFile);
   };
 
   /**
@@ -90,16 +92,27 @@ export function EmptyStatePage({ setSelection }) {
    */
   const readCSV = (csvdata) => {
     try {
-      const lines = csvdata.split("\n");
-      for (let i = 0; i < lines.length; i++) {
-        if (i === 0) continue;
-        const data = lines;
-      }
+      Papa.parse(csvdata, {
+        step: (results, parser) => {
+          console.log("step");
+          console.log(results.data);
+        },
+        complete: () => {
+          console.log("complete");
+        },
+      });
+      //delete(require.cache[path.resolve('csv-parser/index.js')]);
+      // const stream = new csvParser();
+      // stream.on("data", (data) => {
+      //   console.log(data);
+      // });
+      // stream.write(csvdata);
     } catch (e) {
       return false;
     }
     return true;
   };
+
   return (
     <Page>
       <TitleBar
