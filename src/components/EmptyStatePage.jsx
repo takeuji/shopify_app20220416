@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Button,
   Page,
   Layout,
+  Frame,
   EmptyState,
   Card,
   Banner,
+  Toast,
   useIndexResourceState,
 } from "@shopify/polaris";
 import { ResourcePicker, TitleBar } from "@shopify/app-bridge-react";
@@ -21,10 +23,19 @@ export function EmptyStatePage({ setSelection }) {
   const [uploadCSVFile, setUploadCSVFile] = useState(null);
   const [failUpload, setFailUpload] = useState(false);
   const [failMessage, setFailMessage] = useState("");
+  const [successUpload, setSuccessUpload] = useState(false);
 
   const handleSelection = (resoureces) => {
     setOpen(false);
     setSelection(resoureces.selection.map((product) => product.id));
+  };
+
+  const resetStatus = () => {
+    setFailUpload(false);
+    setIsSetCSVFile(false);
+    setUploadCSVFile(null);
+    setFailUpload(false);
+    setSuccessUpload(false);
   };
 
   /**
@@ -34,9 +45,7 @@ export function EmptyStatePage({ setSelection }) {
    */
   const setCSV = (files) => {
     console.log("setCSV");
-    setFailUpload(false);
-    setIsSetCSVFile(false);
-    setUploadCSVFile(null);
+    resetStatus();
     try {
       if (files.length === 0) {
         return;
@@ -78,6 +87,9 @@ export function EmptyStatePage({ setSelection }) {
       const ret = readCSV(event.target.result);
       if (!ret) {
         setErrorMsg();
+      } else {
+        setSuccessUpload(true);
+        toggleActive();
       }
     };
     reader.onerror = () => {
@@ -113,46 +125,59 @@ export function EmptyStatePage({ setSelection }) {
     return true;
   };
 
+  const [toastActive, setToastActive] = useState(false);
+  const toggleActive = useCallback(
+    () => setToastActive((toastActive) => !toastActive),
+    []
+  );
+
+  const toastMarkup = toastActive ? (
+    <Toast content="CSVをアップロードしました" onDismiss={toggleActive} />
+  ) : null;
+
   return (
     <Page>
-      <TitleBar
-        breadcrumbs={[{ content: "商品管理(CSV)" }]}
-        title="CSV２"
-        primaryAction={{
-          content: "CSVアップロード",
-          onAction: () => setOpen(true),
-        }}
-      />
-      <Card title="商品CSVダウンロード" sectioned>
-        <p>全商品をCSVでダウンロードします</p>
-        <Button primary textAlign="right">
-          CSVダウンロード
-        </Button>
-      </Card>
-      <Card title="商品CSVアップロード" sectioned>
-        {failUpload && (
-          <Banner title="アップロードに失敗" onDismiss={() => {}}>
-            <p>{failMessage}</p>
-          </Banner>
-        )}
-        <p>CSVをアップロードして、商品を新規登録・更新します</p>
-        <FileUploader uploadCSV={setCSV} />
-        <Button
-          primary
-          textAlign="right"
-          disabled={!isSetCSVFile}
-          onClick={uploadCSV}
-        >
-          選択されたファイルで商品登録・更新
-        </Button>
-      </Card>
-      <ResourcePicker
-        resourceType={"Product"}
-        showVariants={false}
-        open={open}
-        onSelection={(resources) => handleSelection(resources)}
-        onCancel={() => setOpen(false)}
-      />
+      <Frame>
+        <TitleBar
+          breadcrumbs={[{ content: "商品管理(CSV)" }]}
+          title="CSV２"
+          primaryAction={{
+            content: "CSVアップロード",
+            onAction: () => setOpen(true),
+          }}
+        />
+        <Card title="商品CSVダウンロード" sectioned>
+          <p>全商品をCSVでダウンロードします</p>
+          <Button primary textAlign="right">
+            CSVダウンロード
+          </Button>
+        </Card>
+        <Card title="商品CSVアップロード" sectioned>
+          {failUpload && (
+            <Banner title="アップロードに失敗" onDismiss={() => {}}>
+              <p>{failMessage}</p>
+            </Banner>
+          )}
+          <p>CSVをアップロードして、商品を新規登録・更新します</p>
+          <FileUploader uploadCSV={setCSV} />
+          <Button
+            primary
+            textAlign="right"
+            disabled={!isSetCSVFile}
+            onClick={uploadCSV}
+          >
+            選択されたファイルで商品登録・更新
+          </Button>
+        </Card>
+        <ResourcePicker
+          resourceType={"Product"}
+          showVariants={false}
+          open={open}
+          onSelection={(resources) => handleSelection(resources)}
+          onCancel={() => setOpen(false)}
+        />
+        {toastMarkup}
+      </Frame>
       <Layout>
         <Layout.Section>
           <EmptyState
