@@ -1,35 +1,37 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   Button,
   Page,
   Layout,
   Frame,
-  EmptyState,
   Card,
   Banner,
   Toast,
+  Spinner,
   useIndexResourceState,
 } from "@shopify/polaris";
-import { ResourcePicker, TitleBar } from "@shopify/app-bridge-react";
+import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import FileUploader from "./FileUploader.jsx";
 import Papa from "papaparse";
 import "./fileupload.css";
+import { getProduct } from "../js/qraphQL.js";
 
 const img = "https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg";
 
 export function EmptyStatePage({ setSelection }) {
-  const [open, setOpen] = useState(false);
+  const app = useAppBridge();
+
   const [isSetCSVFile, setIsSetCSVFile] = useState(false);
   const [uploadCSVFile, setUploadCSVFile] = useState(null);
   const [failUpload, setFailUpload] = useState(false);
   const [failMessage, setFailMessage] = useState("");
   const [successUpload, setSuccessUpload] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleSelection = (resoureces) => {
-    setOpen(false);
-    setSelection(resoureces.selection.map((product) => product.id));
-  };
+  useEffect(() => {
+    console.log("load component");
+    console.log(app.hostOrigin);
+  }, []);
 
   const resetStatus = () => {
     setFailUpload(false);
@@ -37,6 +39,7 @@ export function EmptyStatePage({ setSelection }) {
     setUploadCSVFile(null);
     setFailUpload(false);
     setSuccessUpload(false);
+    setIsUploading(false);
   };
 
   /**
@@ -83,19 +86,24 @@ export function EmptyStatePage({ setSelection }) {
       setFailUpload(true);
       setIsSetCSVFile(false);
     };
-    console.log("click");
 
     try {
+      setIsUploading(true);
+      let loadLine = 1;
+      let headData = [];
       Papa.parse(uploadCSVFile, {
         step: (results, parser) => {
+          console.log(`load.. ${loadLine}`);
+          if (loadLine === 1) {
+            headData = results.data;
+          }
+          loadLine++;
           console.log("step");
           console.log(results.data);
         },
         error: function (err, _file, _inputElem, reason) {
-          console.log("err");
-          console.log(err);
-          console.log("reason");
-          console.log(reason);
+          console.log(`err\n${err}`);
+          console.log(`reason\n${reason}`);
           setErrorMsg();
         },
         complete: () => {
@@ -106,22 +114,27 @@ export function EmptyStatePage({ setSelection }) {
       });
     } catch (e) {
       setErrorMsg();
+    } finally {
+      setIsUploading(false);
     }
   };
 
   /**
-   * CSVファイルを読み込む処理
-   * @param csvdata CSVファイルのデータ
+   * CSVファイルの1行を読み込む
+   * @param data CSVファイルのデータ
+   * @param headData 1行目のヘッダ情報
    */
-  const readCSV = (csvdata) => {
+  const readCSVLine = (data, headData) => {
+    let product = { handle: "" };
     try {
-      console.log(csvdata);
-      // 初めに全体を読む
-      const ret = Papa.parse(csvdata);
+      const testValue = "test Value";
+      let loadLine = 1;
       Papa.parse(csvdata, {
         step: (results, parser) => {
-          console.log("step");
-          console.log(results.data);
+          console.log(`load.. ${loadLine}`);
+          loadLine++;
+          console.log("stepdd");
+          // console.log(results.data);
         },
         complete: () => {
           console.log("complete");
@@ -142,18 +155,17 @@ export function EmptyStatePage({ setSelection }) {
   const toastMarkup = toastActive ? (
     <Toast content="CSVをアップロードしました" onDismiss={toggleActive} />
   ) : null;
+  const sppinerMarkup = isUploading ? (
+    <>
+      <div>CSVをアップロード中です・・</div>
+      <Spinner accessibilityLabel="Spinner example" size="large" />
+    </>
+  ) : null;
 
   return (
     <Page>
       <Frame>
-        <TitleBar
-          breadcrumbs={[{ content: "商品管理(CSV)" }]}
-          title="CSV２"
-          primaryAction={{
-            content: "CSVアップロード",
-            onAction: () => setOpen(true),
-          }}
-        />
+        <TitleBar breadcrumbs={[{ content: "商品管理(CSV)" }]} title="CSV" />
         <Card title="商品CSVダウンロード" sectioned>
           <p>全商品をCSVでダウンロードします</p>
           <Button primary textAlign="right">
@@ -177,30 +189,9 @@ export function EmptyStatePage({ setSelection }) {
             選択されたファイルで商品登録・更新
           </Button>
         </Card>
-        <ResourcePicker
-          resourceType={"Product"}
-          showVariants={false}
-          open={open}
-          onSelection={(resources) => handleSelection(resources)}
-          onCancel={() => setOpen(false)}
-        />
+        {sppinerMarkup}
         {toastMarkup}
       </Frame>
-      <Layout>
-        <Layout.Section>
-          <EmptyState
-            heading="Discount your products temporarily"
-            action={{
-              content: "Select products",
-              onAction: () => setOpen(true),
-            }}
-            image={img}
-            imageContained
-          >
-            <p>Select products to change their price temporarily.</p>
-          </EmptyState>
-        </Layout.Section>
-      </Layout>
     </Page>
   );
 }
