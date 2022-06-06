@@ -17,6 +17,7 @@ import "@shopify/polaris/build/esm/styles.css";
 import { useState } from "react";
 import { EmptyStatePage } from "./components/EmptyStatePage";
 import { ProductsPage } from "./components/ProductsPage";
+import { HomePage } from "./components/HomePage";
 
 export default function App() {
   console.log("host-----");
@@ -28,7 +29,6 @@ export default function App() {
         config={{
           apiKey: process.env.SHOPIFY_API_KEY,
           host: new URL(location).searchParams.get("host"),
-          //host: "https://bcb7-2001-f77-d20-1a00-783d-a416-1b52-1098.ngrok.io".toString("base64"),
           forceRedirect: true,
         }}
       >
@@ -36,7 +36,16 @@ export default function App() {
           {selection.length > 0 ? (
             <ProductsPage productIds={selection} />
           ) : (
-            <EmptyStatePage setSelection={setSelection} />
+            <>
+              <EmptyStatePage setSelection={setSelection} />
+
+              <ProductsPage
+                productIds={{
+                  productIds: "gid://shopify/Product/7141562187927",
+                }}
+              />
+              <HomePage />
+            </>
           )}
         </MyProvider>
       </AppBridgeProvider>
