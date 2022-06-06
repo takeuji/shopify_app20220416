@@ -13,13 +13,20 @@ import {
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import FileUploader from "./FileUploader.jsx";
 import Papa from "papaparse";
+import {
+  CREATE_PRODUCTS_QUERY,
+  GET_PRODUCT_BY_HANDLE_QUERY,
+} from "../js/qraphQL.js";
 import "./fileupload.css";
-import { getProduct } from "../js/qraphQL.js";
-
-const img = "https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg";
+import { useQuery, useMutation } from "@apollo/client";
+import { CSVProcessor } from "../js/csvProcessor.js";
 
 export function EmptyStatePage({ setSelection }) {
   const app = useAppBridge();
+  const [populateProducts, { loadingPopulate }] = useMutation(
+    CREATE_PRODUCTS_QUERY
+  );
+  const { getProduct, loadingGet } = useQuery(GET_PRODUCT_BY_HANDLE_QUERY);
 
   const [isSetCSVFile, setIsSetCSVFile] = useState(false);
   const [uploadCSVFile, setUploadCSVFile] = useState(null);
@@ -31,6 +38,7 @@ export function EmptyStatePage({ setSelection }) {
   useEffect(() => {
     console.log("load component");
     console.log(app.hostOrigin);
+    console.log(CSVProcessor.loadCSVFormat());
   }, []);
 
   const resetStatus = () => {
@@ -90,7 +98,7 @@ export function EmptyStatePage({ setSelection }) {
     try {
       setIsUploading(true);
       let loadLine = 1;
-      let headData = [];
+      let headData;
       Papa.parse(uploadCSVFile, {
         step: (results, parser) => {
           console.log(`load.. ${loadLine}`);
@@ -117,33 +125,6 @@ export function EmptyStatePage({ setSelection }) {
     } finally {
       setIsUploading(false);
     }
-  };
-
-  /**
-   * CSVファイルの1行を読み込む
-   * @param data CSVファイルのデータ
-   * @param headData 1行目のヘッダ情報
-   */
-  const readCSVLine = (data, headData) => {
-    let product = { handle: "" };
-    try {
-      const testValue = "test Value";
-      let loadLine = 1;
-      Papa.parse(csvdata, {
-        step: (results, parser) => {
-          console.log(`load.. ${loadLine}`);
-          loadLine++;
-          console.log("stepdd");
-          // console.log(results.data);
-        },
-        complete: () => {
-          console.log("complete");
-        },
-      });
-    } catch (e) {
-      return false;
-    }
-    return true;
   };
 
   const [toastActive, setToastActive] = useState(false);

@@ -8,6 +8,8 @@ import "dotenv/config";
 import applyAuthMiddleware from "./middleware/auth.js";
 import verifyRequest from "./middleware/verify-request.js";
 
+import fs from "fs";
+
 console.log("server");
 import path from "path";
 import { createRequire } from "module";
@@ -81,6 +83,13 @@ export async function createServer(
 
     const countData = await Product.count({ session });
     res.status(200).send(countData);
+  });
+
+  app.get("/product-csv-format", verifyRequest(app), async (req, res) => {
+    const product = fs.readFileSync("./config/product_csv.json", "utf8");
+    const json = JSON.parse(product);
+
+    res.status(200).send(json);
   });
 
   app.post("/graphql", verifyRequest(app), async (req, res) => {
